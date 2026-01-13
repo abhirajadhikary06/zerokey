@@ -54,7 +54,7 @@ def _run_anthropic(api_key: str, body: dict):
 
 def _run_gemini(api_key: str, body: dict):
     # Gemini uses a different format - model in URL
-    model = body.get("model", "gemini-pro")
+    model = body.get("model", "gemini-2.5-flash")
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     return requests.post(url, json=body)
 
