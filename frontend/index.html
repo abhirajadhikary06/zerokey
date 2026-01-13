@@ -2,14 +2,64 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>API Vault</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zerokey - API Vault</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      button {
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+        background: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0052a3;
+      }
+    </style>
   </head>
   <body>
-    <h1>API Vault MVP</h1>
+    <h1>Zerokey API Vault</h1>
     <p>
-      Login with Auth0 first (get token from Auth0 → SPA or test with /docs)
+      Securely store and proxy your API keys (OpenAI, Anthropic, Groq, etc.)
     </p>
-    <p>Use /docs (Swagger) to test protected endpoints with Bearer token</p>
-    <a href="/static/dashboard.html">Go to Dashboard (placeholder)</a>
+
+    <button id="loginBtn">Login with Auth0</button>
+    <p id="status">Not logged in</p>
+
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1.0/auth0-spa-js.production.min.js"></script>
+    <script>
+      const auth0 = createAuth0Client({
+        domain: "YOUR_AUTH0_DOMAIN", // ← replace
+        clientId: "YOUR_CLIENT_ID", // ← replace
+        authorizationParams: {
+          redirect_uri: window.location.origin + "/static/callback.html",
+          audience: "YOUR_API_AUDIENCE", // ← replace
+          scope: "openid profile email",
+        },
+      });
+
+      document.getElementById("loginBtn").onclick = async () => {
+        await (await auth0).loginWithRedirect();
+      };
+
+      // Check if we're back from login
+      window.onload = async () => {
+        if (window.location.search.includes("code=")) {
+          await (await auth0).handleRedirectCallback();
+          const token = await (await auth0).getTokenSilently();
+          localStorage.setItem("access_token", token);
+          document.getElementById("status").textContent = "Logged in!";
+          window.location.href = "/static/dashboard.html"; // redirect to dashboard
+        }
+      };
+    </script>
   </body>
 </html>

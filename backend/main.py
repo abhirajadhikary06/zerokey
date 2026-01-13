@@ -13,7 +13,7 @@ app.include_router(proxy.router)
 app.include_router(usage.router)
 
 # Serve frontend
-app.mount("/static", StaticFiles(directory="../frontend"), name="static")
+app.mount("/static", StaticFiles(directory="./frontend"), name="static")
 
 @app.get("/")
 def root():
