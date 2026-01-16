@@ -8,8 +8,9 @@ from jose import jwt
 from datetime import datetime, timedelta, timezone
 import requests
 import os
+import random
 
-from . import models, database, config
+from . import models, database, config, dependencies
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -20,6 +21,22 @@ class RegisterRequest(BaseModel):
     username: str
     password: str
     email: str | None = None
+
+
+class PasswordUpdateRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
+PROFILE_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "static", "profile")
+
+
+def _get_local_profile_images():
+    if not os.path.isdir(PROFILE_DIR):
+        return []
+    files = [f for f in os.listdir(PROFILE_DIR) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))]
+    files.sort()
+    return files
 
 @router.post("/register")
 def register(
@@ -70,6 +87,49 @@ def login(
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/me")
+def get_me(
+    current_user: models.User = Depends(dependencies.get_current_user),
+):
+    avatar_url = None
+    if current_user.auth_method == "github" and current_user.github_username:
+        avatar_url = f"https://avatars.githubusercontent.com/{current_user.github_username}"
+    elif current_user.auth_method == "gitlab" and current_user.gitlab_username:
+        avatar_url = f"https://gitlab.com/{current_user.gitlab_username}.png"
+
+    local_avatars = [f"/static/profile/{name}" for name in _get_local_profile_images()]
+
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "auth_method": current_user.auth_method,
+        "github_username": current_user.github_username,
+        "gitlab_username": current_user.gitlab_username,
+        "created_at": current_user.created_at,
+        "avatar_url": avatar_url,
+        "local_avatars": local_avatars,
+    }
+
+
+@router.post("/password")
+def update_password(
+    payload: PasswordUpdateRequest,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(dependencies.get_current_user),
+):
+    if current_user.auth_method != "jwt" or not current_user.hashed_password:
+        raise HTTPException(status_code=400, detail="Password update available only for JWT users")
+
+    if not pwd_context.verify(payload.old_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Old password is incorrect")
+
+    current_user.hashed_password = pwd_context.hash(payload.new_password)
+    db.commit()
+
+    return {"message": "Password updated successfully"}
 
 
 # ────────────────────────────────────────────────
@@ -444,3 +504,17 @@ def gitlab_callback(
         print(f"[GitLab OAuth] Unexpected error: {str(e)}")
         error_msg = f"Error:+{str(e)[:50]}"
         return RedirectResponse(url=f"/static/index.html?error={error_msg}")
+
+
+@router.delete("/account")
+def delete_account(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(dependencies.get_current_user),
+):
+    # Remove usage logs and API keys before deleting the user to satisfy FK constraints
+    db.query(models.UsageLog).filter(models.UsageLog.user_id == current_user.id).delete()
+    db.query(models.ApiKey).filter(models.ApiKey.user_id == current_user.id).delete()
+    db.delete(current_user)
+    db.commit()
+
+    return {"message": "Account deleted"}

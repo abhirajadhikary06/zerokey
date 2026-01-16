@@ -11,7 +11,8 @@ if not JWT_SECRET:
 
 # Keep your other variables
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./vault.db")
+# Prefer Neon Postgres if provided, else fall back to DATABASE_URL, else local sqlite
+DATABASE_URL = os.getenv("NEON_DATABASE_URL") or os.getenv("DATABASE_URL", "sqlite:///./vault.db")
 
 # GitHub OAuth Configuration
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")

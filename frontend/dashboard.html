@@ -73,6 +73,14 @@
       .logout:hover {
         background: #b91c1c;
       }
+      .profile-btn {
+        background: #0ea5e9;
+        float: right;
+        margin-right: 0.75rem;
+      }
+      .profile-btn:hover {
+        background: #0284c7;
+      }
       #status {
         color: #16a34a;
         margin-top: 1rem;
@@ -88,6 +96,7 @@
   <body>
     <div class="container">
       <h1>Dashboard - Zerokey API Vault</h1>
+      <button class="profile-btn" onclick="goProfile()">Profile</button>
       <button class="logout" onclick="logout()">Logout</button>
 
       <!-- Section 1: Add New API Key -->
@@ -170,6 +179,10 @@
       function logout() {
         localStorage.removeItem("access_token");
         window.location.href = "/static/index.html";
+      }
+
+      function goProfile() {
+        window.location.href = "/static/profile.html";
       }
 
       // Add new key
