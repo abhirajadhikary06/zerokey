@@ -14,7 +14,9 @@ class User(Base):
     github_username = Column(String, nullable=True)  # GitHub username
     gitlab_id = Column(String, unique=True, index=True, nullable=True)  # GitLab OAuth ID
     gitlab_username = Column(String, nullable=True)  # GitLab username
-    auth_method = Column(String, default="jwt")  # "jwt", "github", or "gitlab"
+    bitbucket_id = Column(String, unique=True, index=True, nullable=True)  # Bitbucket OAuth ID
+    bitbucket_username = Column(String, nullable=True)  # Bitbucket username
+    auth_method = Column(String, default="jwt")  # "jwt", "github", "gitlab", or "bitbucket"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     api_keys = relationship("ApiKey", back_populates="user")

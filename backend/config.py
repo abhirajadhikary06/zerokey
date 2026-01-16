@@ -24,3 +24,8 @@ GITLAB_CLIENT_ID = os.getenv("GITLAB_CLIENT_ID")
 GITLAB_CLIENT_SECRET = os.getenv("GITLAB_CLIENT_SECRET")
 GITLAB_REDIRECT_URI = os.getenv("GITLAB_REDIRECT_URI", "http://localhost:8000/auth/gitlab/callback")
 
+# Bitbucket OAuth Configuration
+BITBUCKET_CLIENT_ID = os.getenv("BITBUCKET_CLIENT_ID")
+BITBUCKET_CLIENT_SECRET = os.getenv("BITBUCKET_CLIENT_SECRET")
+BITBUCKET_REDIRECT_URI = os.getenv("BITBUCKET_REDIRECT_URI", "http://localhost:8000/auth/bitbucket/callback")
+
