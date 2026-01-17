@@ -24,7 +24,7 @@ app = typer.Typer(
 )
 
 # Config
-BASE_URL = "http://127.0.0.1:8000"  # Change to production URL later
+BASE_URL = "https://zerokey.onrender.com"  # Change to production URL later
 CONFIG_FILE = Path.home() / ".zerokey" / "config.json"
 CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
 
