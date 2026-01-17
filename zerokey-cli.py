@@ -24,7 +24,7 @@ app = typer.Typer(
 )
 
 # Config
-BASE_URL = "http://127.0.0.1:8000"  # Change to production URL later
+BASE_URL = "https://zerokey.onrender.com"  # Change to production URL later
 CONFIG_FILE = Path.home() / ".zerokey" / "config.json"
 CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
 
@@ -81,11 +81,12 @@ def login():
     # Display options with logos/icons
     console.print("  [bold]1.[/bold] JWT Authentication (Username & Password)")
     console.print("  [bold]2.[/bold] GitHub OAuth")
-    console.print("  [bold]3.[/bold] GitLab OAuth\n")
+    console.print("  [bold]3.[/bold] GitLab OAuth")
+    console.print("  [bold]4.[/bold] Bitbucket OAuth\n")
     
     choice = typer.prompt(
         "Enter your choice",
-        type=click.Choice(["1", "2", "3"]),
+        type=click.Choice(["1", "2", "3", "4"]),
         default="1"
     )
     
@@ -93,8 +94,10 @@ def login():
         auth_choice = "jwt"
     elif choice == "2":
         auth_choice = "github"
-    else:
+    elif choice == "3":
         auth_choice = "gitlab"
+    else:
+        auth_choice = "bitbucket"
     
     if auth_choice == "jwt":
         console.print("\n[bold cyan] JWT Login[/bold cyan]")
@@ -185,6 +188,38 @@ def login():
         save_token(pasted_token.strip())
         console.print(Panel(
             "[bold green]✓ GitLab login successful via CLI![/bold green]\nToken saved securely.",
+            title="Success",
+            border_style="green",
+            expand=False
+        ))
+
+    elif auth_choice == "bitbucket":
+        
+        console.print(Panel(
+            "[bold cyan]:bitbucket: Bitbucket Login Flow[/bold cyan]\n\n"
+            "[yellow]Step 1:[/yellow] Opening Bitbucket authorization in your browser...\n"
+            "[yellow]Step 2:[/yellow] After you authorize, your JWT will be shown in the browser\n"
+            "[yellow]Step 3:[/yellow] Copy it and paste back here to finish CLI login",
+            title="Bitbucket OAuth",
+            border_style="cyan",
+            expand=False
+        ))
+        
+        bitbucket_url = f"{BASE_URL}/auth/bitbucket/login?state=cli"
+        console.print(f"\n[blue]Opening: {bitbucket_url}[/blue]\n")
+        
+        webbrowser.open(bitbucket_url)
+        
+        console.print("\n[bold yellow]After authorizing, copy the JWT shown in the browser and paste it below.[/bold yellow]\n")
+        pasted_token = typer.prompt("Paste JWT from browser", hide_input=True)
+
+        if not pasted_token.strip():
+            console.print("[red]✗ No token provided. Aborting.[/red]")
+            raise typer.Exit(1)
+
+        save_token(pasted_token.strip())
+        console.print(Panel(
+            "[bold green]✓ Bitbucket login successful via CLI![/bold green]\nToken saved securely.",
             title="Success",
             border_style="green",
             expand=False
